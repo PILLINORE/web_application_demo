@@ -1,0 +1,232 @@
+
+<html>
+<head>
+<meta charset='utf-8'/>
+<title data-i18n="resources.title_beijingMVTVectorTile"></title>
+<meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+<script type="text/javascript" src="jquery.min.js"></script>
+<script type="text/javascript" src="mapbox-gl-draw.js"></script>
+<script type="text/javascript" src="mapbox-gl.min.js"></script>
+<script src='turf.min.js'></script>
+
+<link type="text/css" rel="stylesheet" href="mapbox-gl.min.css"/>
+<link type="text/css" rel="stylesheet" href="mapbox-gl-draw.css"/>
+
+<style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        #draws{
+            position: absolute;
+            z-index: 10;
+            margin-left: 200px;
+            margin-top: 50px;
+        }
+        #draw_area{
+            position: absolute;
+            z-index: 10;
+            margin-left: 100px;
+            margin-top: 50px;
+        }
+        #map {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="draw_area" style="color: chocolate; font-weight: bold;"></div>
+    <div id="draws"></div>
+    <div id='map'></div>
+<script type="text/javascript" src="demo.js"></script>
+<script type="text/javascript">    
+        var map = getMap();    
+
+        var draw = new MapboxDraw({
+            displayControlsDefault: false,
+            controls: {
+                point: true,
+                line_string: true,
+                polygon: true,
+                trash: true
+            }
+
+        });
+        window.Draw = draw;
+        map.addControl(draw, "top-right");
+        map.on("draw.create", this.updateArea);
+        map.on("draw.update", this.updateArea);
+        map.on("draw.delete", this.delArea);
+
+
+        /**
+         *  mapBox 提供强大的地图可视化功能
+         * */
+        map.on('click', function(e) {
+            // set bbox as 5px reactangle area around clicked point
+            // 以此点*px范围内的正方形算为点击反应区
+            var bbox = [
+                [e.point.x - 1, e.point.y - 1],
+                [e.point.x + 1, e.point.y + 1]
+            ];
+            // mapbox 返回查询要素的图层属性
+            var features = map.queryRenderedFeatures(bbox, {
+                layers: ['湖泊、水库R@北京','一级道路L@北京','绿地R@北京']
+            });
+            
+            // 返回查询图层属性feature合集
+
+            //此处与框选会冲突
+
+            var filter_hp = features.reduce(
+                function(memo, feature) {
+                    //console.log(feature);
+                    if (feature.sourceLayer == '湖泊、水库R@北京') {
+                        memo.push(feature.properties.SmID);
+                        //alert(feature.properties.NAME);
+                    } else {
+                        console.log(feature.properties);
+                    }
+                    return memo;
+                },['in', 'SmID']
+            );
+            //返回符合查询要素集合后设置符合这些图层要素的属性
+            //map.setFilter('counties-highlighted-hp', filter_hp);
+
+            var filter_dl1 = features.reduce(
+                function(memo, feature) {
+                    //console.log(feature);
+                    if (feature.sourceLayer == '一级道路L@北京') {
+                        memo.push(feature.properties.SmID);
+                        alert(feature.properties.道路所属区域 + "——" +feature.properties.道路名称);
+                    } else {
+                        console.log(feature.properties);
+                    }
+                    return memo;
+                },
+                ['in', 'SmID']
+            );
+            //map.setFilter('counties-highlighted-dl1', filter_dl1);
+
+            var filter_ld = features.reduce(
+                function(memo, feature) {
+                    //console.log(feature);
+                    if (feature.sourceLayer == '绿地R@北京') {
+                        memo.push(feature.properties.SmID);
+                        //alert(feature.properties.NAME);
+                    } else {
+                        console.log(feature.properties);
+                    }
+                    return memo;
+                },
+                ['in', 'SmID']
+            );
+            //map.setFilter('counties-highlighted-ld', filter_ld);
+            
+        });
+    
+        function newArea(){
+
+        }
+
+        function delArea(){
+            var answer = document.getElementById('draw_area');
+            answer.innerHTML = '';
+        }
+
+        function updateArea(e){
+            var data = draw.getAll();
+            var answer = document.getElementById('draw_area');
+            if (data.features.length > 0) {
+
+                // 计算面积
+                var area = turf.area(data);
+                // restrict to area to 2 decimal points
+                var rounded_area = Math.round(area*100)/100;
+                answer.innerHTML = '<p><strong>' + rounded_area + '</strong> ㎡</p>';
+
+                //查询选中要素
+                var draw_polygon = turf.bbox(e.features[0]);
+                var southWest = [draw_polygon[0], draw_polygon[1]];
+                var northEast = [draw_polygon[2], draw_polygon[3]];
+        
+                var northEastPointPixel = map.project(northEast);
+                var southWestPointPixel = map.project(southWest);
+
+                var features = map.queryRenderedFeatures([southWestPointPixel, northEastPointPixel], { layers: ['湖泊、水库R@北京','一级道路L@北京','绿地R@北京'] });
+ 
+                //框选结果
+                var filter_hp = features.reduce(
+                function(memo, feature) {
+                    //console.log(feature);
+                    if (feature.sourceLayer == '湖泊、水库R@北京') {
+                        memo.push(feature.properties.SmID);
+                        //alert(feature.properties.NAME);
+                    } else {
+                        console.log(feature.properties);
+                    }
+                    return memo;
+                },['in', 'SmID']
+            );
+            //返回符合查询要素集合后设置符合这些图层要素的属性
+            map.setFilter('counties-highlighted-hp', filter_hp);
+
+            var filter_dl1 = features.reduce(
+                function(memo, feature) {
+                    //console.log(feature);
+                    if (feature.sourceLayer == '一级道路L@北京') {
+                        memo.push(feature.properties.SmID);
+                        //alert(feature.properties.道路所属区域 + "——" +feature.properties.道路名称);
+                    } else {
+                        console.log(feature.properties);
+                    }
+                    return memo;
+                },
+                ['in', 'SmID']
+            );
+            map.setFilter('counties-highlighted-dl1', filter_dl1);
+
+            var filter_ld = features.reduce(
+                function(memo, feature) {
+                    //console.log(feature);
+                    if (feature.sourceLayer == '绿地R@北京') {
+                        memo.push(feature.properties.SmID);
+                        //alert(feature.properties.NAME);
+                    } else {
+                        console.log(feature.properties);
+                    }
+                    return memo;
+                },
+                ['in', 'SmID']
+            );
+            map.setFilter('counties-highlighted-ld', filter_ld);
+
+
+                // var filter_polygon = features.reduce(function(memo, feature) {
+
+                //     if (! (undefined === turf.intersect(feature, e.features[0]))) {
+                //         memo.push(feature.properties.SmID);
+                //         //alert(feature.properties.NAME);
+                //     }
+                //     return memo;
+                //     // memo.push(feature.properties.SmID);
+                //     // //alert(feature.properties.NAME);
+                //     // return memo;
+                    
+                    
+                // }, ['in', 'SmID']);
+
+                // map.setFilter("counties-highlighted-hp", filter_polygon);
+
+            } else {
+                answer.innerHTML = '';
+                if (e.type !== 'draw.delete') alert("请用绘制工具绘制图形后再试!");
+            }
+        }
+
+    </script>
+</body>
+</html>

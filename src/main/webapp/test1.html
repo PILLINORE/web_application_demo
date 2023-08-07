@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>选取要素测试</title>
+    <script type="text/javascript" src="jquery.min.js"></script><!--引入jquery库-->
+    <script type="text/javascript" src="mapbox-gl-draw.js"></script><!--引入mapbox_draw库-->
+    <script type="text/javascript" src="mapbox-gl.min.js"></script><!--引入mapbox库-->
+    <script src='turf.min.js'></script><!--import turf plugin-->
+
+    <link type="text/css" rel="stylesheet" href="mapbox-gl.min.css"/>
+    <link type="text/css" rel="stylesheet" href="mapbox-gl-draw.css"/>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        #draws{
+            position: absolute;
+            z-index: 10;
+            margin-left: 200px;
+            margin-top: 50px;
+        }
+        #draw_area{
+            position: absolute;
+            z-index: 10;
+            margin-left: 100px;
+            margin-top: 50px;
+        }
+        #map {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 100%;
+        }
+    </style>
+
+</head>
+<body>
+
+    <div id="draw_area" style="color: chocolate; font-weight: bold;"></div>
+    <div id="draws"></div>
+    <div id='map'></div>
+    <script type="text/javascript" src="demo.js"></script>
+    <script type="text/javascript">
+
+
+
+
+</body>
+</html>
